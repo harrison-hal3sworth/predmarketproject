@@ -1,0 +1,14 @@
+# TODO: fill in / adjust as you build out the pipeline
+
+sports:
+  mlb:
+    kalshi_series: "KXMLBGAME"
+    odds_api_key: "baseball_mlb"
+  # nfl/nba: add once you're off the free Odds API tier
+
+sportsbook: "draftkings"          # must match a bookmaker key TheOddsAPI recognizes
+
+threshold_pct: 5.0                # TODO: pick a value — this is your risk-aversion knob
+flat_stake: 10.0                  # paper dollars per triggered bet
+
+snapshot_minutes_before_start: 15 # TODO: tune based on how "closing line" you want to capture
