@@ -1,14 +1,36 @@
-# TODO: fill in / adjust as you build out the pipeline
+# Historical-backfill config. Replaces the live-pull config shape (no more
+# odds_api_key / snapshot_minutes_before_start for a scheduler — this is a
+# one-shot batch job you run locally per date range).
 
 sports:
+  nfl:
+    kalshi_series: "KXNFLGAME"
+    team_map_file: "nfl_teams.json"
+    espn_sport_key: "nfl"          # key into SPORT_ENDPOINTS in src/fetchers/schedule.py
+    oddsharvester_sport: "american-football"
+    oddsharvester_league: "usa-nfl"
   mlb:
     kalshi_series: "KXMLBGAME"
-    odds_api_key: "baseball_mlb"
-  # nfl/nba: add once you're off the free Odds API tier
+    team_map_file: "mlb_teams.json"
+    espn_sport_key: "mlb"
+    oddsharvester_sport: "baseball"
+    oddsharvester_league: "usa-mlb"   # TODO: confirm this league slug once you get to MLB
 
-sportsbook: "draftkings"          # must match a bookmaker key TheOddsAPI recognizes
+active_sport: "nfl"
 
-threshold_pct: 5.0                # TODO: pick a value — this is your risk-aversion knob
-flat_stake: 10.0                  # paper dollars per triggered bet
+# 2025 NFL regular season pilot window. Kalshi's NFL markets launched
+# with the 2025 season (~Sept 2025) — nothing before that will match.
+date_range:
+  start: "2025-09-04"
+  end: "2025-09-26"
 
-snapshot_minutes_before_start: 15 # TODO: tune based on how "closing line" you want to capture
+sportsbook_bookmaker: "Bet365"   # must match a bookmaker_name OddsHarvester returns
+
+candle_window_minutes_before_kickoff: 30   # how far back from scheduled start to
+                                            # search for a Kalshi candle (replaces
+                                            # the old snapshot_minutes_before_start)
+
+output_csv: "data/nfl_2025_historical.csv"
+
+# threshold_pct / flat_stake intentionally left out of this file — that's
+# your bet_logic.py's territory, not the data-pull config.

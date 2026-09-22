@@ -1,3 +1,5 @@
+# CLAUDE GENERATED TEST FOR DATA PULLING THROUGH PROBABILITY SPREAD PIPELINE
+
 """
 preview_snapshot.py — manual sanity check of the full non-storage pipeline:
 pulls live Kalshi markets + cached TheOddsAPI data, matches them, computes
