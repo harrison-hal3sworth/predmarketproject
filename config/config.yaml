@@ -11,8 +11,9 @@ sports:
     oddsharvester_league: "nfl"
     oddsharvester_market: "home_away"
     oddsharvester_season: "2025-2026"
+    oddsharvester_pilot_max_pages: null   # set to e.g. 2 for a capped first pilot run
   mlb:
-    oddsharvester_concurrency: 5
+    oddsharvester_concurrency: 10
     kalshi_series: "KXMLBGAME"
     team_map_file: "mlb_teams.json"
     espn_sport_key: "mlb"
@@ -20,6 +21,17 @@ sports:
     oddsharvester_league: "mlb"
     oddsharvester_market: "home_away"
     oddsharvester_season: "2025"
+    oddsharvester_pilot_max_pages: null
+  nba:
+    kalshi_series: "KXNBAGAME"
+    team_map_file: "nba_teams.json"
+    espn_sport_key: "nba"
+    oddsharvester_sport: "basketball"
+    oddsharvester_league: "nba"
+    oddsharvester_market: "home_away"
+    oddsharvester_season: "2025-2026"
+    oddsharvester_concurrency: 10
+    oddsharvester_pilot_max_pages: 2
 
 # active_sport: "nfl"
 
@@ -28,19 +40,29 @@ sports:
 # date_range:
 #   start: "2025-09-04"
 #   end: "2026-02-12"
-
-# sportsbook_bookmaker: "Bet365"   # must match a bookmaker_name OddsHarvester returns
-
-# candle_window_minutes_before_kickoff: 30   # how far back from scheduled start to
-#                                             # search for a Kalshi candle (replaces
-#                                             # the old snapshot_minutes_before_start)
-
 # output_csv: "data/nfl_2025_historical.csv"
-active_sport: "mlb"
+# active_sport: "mlb"
+# date_range:
+#   start: "2025-03-18"
+#   end: "2025-11-02"
+# output_csv: "data/mlb_2025_historical.csv"
+
+active_sport: "nba"
 date_range:
-  start: "2025-03-18"
-  end: "2025-11-02"
-output_csv: "data/mlb_2025_historical.csv"
+  start: "2025-10-21"
+  end: "2026-06-15"
+output_csv: "data/nba_2025_historical.csv"
+
+# FIXED 2026-09-23: these two were commented out along with the old
+# nfl-specific block above, but they're sport-agnostic globals used every
+# run regardless of active_sport, not part of any one sport's profile —
+# left commented out, build_historical_dataset.py KeyErrors at step [3/4]
+# and [4/4]. Restored as active.
+sportsbook_bookmaker: "Bet365"   # must match a bookmaker_name OddsHarvester returns
+
+candle_window_minutes_before_kickoff: 30   # how far back from scheduled start to
+                                            # search for a Kalshi candle (replaces
+                                            # the old snapshot_minutes_before_start)
 
 # threshold_pct / flat_stake intentionally left out of this file — that's
 # your bet_logic.py's territory, not the data-pull config.

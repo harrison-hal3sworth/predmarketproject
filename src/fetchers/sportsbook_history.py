@@ -2,21 +2,27 @@
 sportsbook_history.py
 
 Wraps OddsHarvester (https://github.com/jordantete/OddsHarvester) for
-NFL historical closing lines, and normalizes its output into the same
-shape schedule.py and event_matcher.py already use (home_team/away_team/
+historical closing lines, and normalizes its output into the same shape
+schedule.py and event_matcher.py already use (home_team/away_team/
 start_time), so the join step doesn't need to know which fetcher a row
-came from.
+came from. Config-driven per sport (see config.yaml's oddsharvester_*
+keys) — nothing in this file is NFL-specific.
 
-STATUS: written from OddsHarvester's README, not yet verified against
-a real scrape — unlike kalshi_history.py and schedule.py, which are
-built against confirmed live responses. This is exactly the "pilot"
-checkpoint from earlier: run scrape_season() for one week of the 2025
-season first and check the printed sample rows before trusting this at
-full-season scale. The most likely thing to need adjusting is the exact
-key names inside each `odds` entry (`_extract_moneyline_prices` below)
-once you see a real American-football response — soccer's 1X2 market
-(the documented example) has a draw outcome NFL doesn't, so the key
-names may differ.
+STATUS (updated 2026-09-23): originally written from OddsHarvester's
+README alone. Since then, every flag, key name, and field name this
+module assumes has been cross-checked against the actual installed
+oddsharvester package source (cli/options.py, cli/validators.py,
+core/sport_market_registry.py, storage/local_data_storage.py) — for
+both american-football/NFL and basketball/NBA: sport/league/market
+values, the `-c`/`-f`/`-o` flag meanings, the `{market}_market` output
+key, and the `odds_labels=["1","2"]` registered for home_away on every
+sport, with "1" = the first-listed/home team. What's STILL unverified
+is a real live scrape response — source code confirms the shape
+OddsHarvester *should* produce, not what oddsportal.com actually
+renders today. Run a small pilot scrape first (pass a low `max_pages`
+for this — NOT a shrunk `date_range`, which does nothing for this step,
+see build_historical_dataset.py) and check the printed sample rows
+before trusting this at full-season scale.
 
 Install separately (not in requirements.txt — it pulls in Playwright,
 which is a heavier dependency you may not want for the rest of the
@@ -33,9 +39,20 @@ in this file.
 
 import json
 import subprocess
+import time
 from datetime import datetime
 from pathlib import Path
 
+def _fmt_duration(seconds: float) -> str:
+    """Human-readable elapsed time, e.g. '2h 14m 03s' or '47s'."""
+    seconds = int(seconds)
+    h, rem = divmod(seconds, 3600)
+    m, s = divmod(rem, 60)
+    if h:
+        return f"{h}h {m:02d}m {s:02d}s"
+    if m:
+        return f"{m}m {s:02d}s"
+    return f"{s}s"
 
 def decimal_to_american(decimal_odds: float) -> int:
     """Converts a decimal odds quote (e.g. 1.50) to American odds
@@ -55,24 +72,34 @@ def run_historic_scrape(
     bookmaker_filter: str | None = None,
     headless: bool = True,
     concurrency: int = 3,
+    checkpoint_path: str | None = None,
+    max_pages: int | None = None,
 ) -> Path:
     """Shells out to the oddsharvester CLI for one sport/league/market/season.
 
-    FIXED 2026-09-22 (twice): sport, league, AND market were all
-    hardcoded inside this function — "american-football"/"usa-nfl"
-    first, then "moneyline" for market, both wrong and both silently
-    ignoring config.yaml. Confirmed against real CLI error output:
-    league key is the bare "nfl", and there's no "moneyline" market for
-    american-football — the two-outcome (no draw) market is called
-    "home_away". All three now come from the caller (config.yaml, via
-    build_historical_dataset.py) rather than being baked in here — if
-    you add another sport, config.yaml is the only place that needs new
-    values, not this function. Lesson learned twice over: don't
-    hardcode anything this function was told to take from config.
+    ADDED 2026-09-23: uses --stream-ndjson so oddsharvester emits one JSON
+    line per match to stdout AS SOON as it's scraped, rather than only
+    writing the final --output file after the entire run finishes. When
+    checkpoint_path is given, every streamed match is appended and flushed
+    to that file immediately, so a hard interruption (forced OS restart,
+    power loss, anything that kills the process outright) leaves real,
+    readable progress on disk instead of nothing. The normal --output file
+    still gets written at the end on a successful run, so load_and_normalize()
+    is unaffected on the happy path — checkpoint_path is purely a safety net
+    for the unhappy one. See recover_from_checkpoint() below.
 
-    season format ("2025" vs "2025-2026") — confirm which the installed
-    version expects; the README examples were inconsistent between
-    single-year and hyphenated forms for different sports.
+    FIXED 2026-09-23 (source-level pass, done separately from the
+    concurrency/checkpoint work above and merged back in): removed a stray
+    duplicate copy of this function's body that had ended up living below
+    the real `return` — genuinely unreachable, never executed, but worth
+    knowing it was there since it looked like the checkpoint logic was
+    duplicated. Also, `bookmaker_filter` was accepted as a parameter here
+    but never wired into `cmd` — a no-op. It's now passed through as
+    `--target-bookmaker` (confirmed real flag, cli/options.py). Also added
+    `max_pages` -> `--max-pages`: date_range in config.yaml does NOT limit
+    this step (it's driven entirely by `season`), so it's still the only
+    real lever for a cheap capped run on a sport you haven't scraped yet —
+    see build_historical_dataset.py's docstring.
 
     Writes raw JSON to output_path and returns its Path. Does not parse
     it — call load_and_normalize() separately so a bad parse doesn't
@@ -87,27 +114,90 @@ def run_historic_scrape(
         "-f", "json",
         "-o", output_path,
         "-c", str(concurrency),
+        "--stream-ndjson",
     ]
     if headless:
         cmd.append("--headless")
+    if bookmaker_filter:
+        cmd.extend(["--target-bookmaker", bookmaker_filter])
+    if max_pages is not None:
+        cmd.extend(["--max-pages", str(max_pages)])
 
     print(f"Running: {' '.join(cmd)}")
+    scrape_start = time.monotonic()
+
+    checkpoint_file = None
+    checkpoint_count = 0
+    if checkpoint_path:
+        checkpoint_file = open(checkpoint_path, "a", encoding="utf-8")
+        print(f"  Checkpointing each match to {checkpoint_path} as it's scraped")
+
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         text=True, bufsize=1,
     )
     output_lines = []
-    for line in process.stdout:
-        print(f"  [oddsharvester] {line.rstrip()}")
-        output_lines.append(line)
+    try:
+        for line in process.stdout:
+            stripped = line.rstrip()
+            is_match_record = False
+            if checkpoint_file and stripped.startswith("{"):
+                try:
+                    json.loads(stripped)
+                    is_match_record = True
+                except json.JSONDecodeError:
+                    pass
+
+            if is_match_record:
+                checkpoint_file.write(stripped + "\n")
+                checkpoint_file.flush()
+                checkpoint_count += 1
+                if checkpoint_count % 25 == 0:
+                    elapsed = time.monotonic() - scrape_start
+                    rate = checkpoint_count / (elapsed / 60) if elapsed > 0 else 0
+                    print(f"  [checkpoint] {checkpoint_count} matches saved "
+                          f"({_fmt_duration(elapsed)} elapsed, ~{rate:.1f} matches/min)")
+            else:
+                print(f"  [oddsharvester] {stripped}")
+            output_lines.append(line)
+    finally:
+        if checkpoint_file:
+            checkpoint_file.close()
+
     process.wait()
+    total_elapsed = time.monotonic() - scrape_start
 
     if process.returncode != 0:
         raise RuntimeError(
-            f"oddsharvester exited {process.returncode}\noutput:\n{''.join(output_lines)}"
+            f"oddsharvester exited {process.returncode} after {_fmt_duration(total_elapsed)} "
+            f"({checkpoint_count} matches were checkpointed to {checkpoint_path} before it died)"
+            f"\nlast output:\n{''.join(output_lines[-40:])}"
         )
+    print(f"  Scrape finished in {_fmt_duration(total_elapsed)} ({checkpoint_count} matches checkpointed)")
     return Path(output_path if output_path.endswith(".json") else f"{output_path}.json")
 
+
+def recover_from_checkpoint(checkpoint_path: str, recovered_output_path: str) -> Path:
+    """Turns a partial NDJSON checkpoint (from a run that never finished —
+    OS restart, power loss, crash) into a plain JSON array in the same
+    shape load_and_normalize() already expects, so an interrupted overnight
+    run doesn't mean starting over from zero.
+
+    Only meant for after an interrupted run. On a normal successful run,
+    use the real --output file instead — it's oddsharvester's own complete,
+    de-duplicated result, not a reconstruction.
+    """
+    matches = []
+    with open(checkpoint_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            matches.append(json.loads(line))
+
+    Path(recovered_output_path).write_text(json.dumps(matches, indent=2))
+    print(f"Recovered {len(matches)} matches from {checkpoint_path} -> {recovered_output_path}")
+    return Path(recovered_output_path)
 
 def _extract_moneyline_prices(odds_entries: list[dict], preferred_bookmaker: str | None) -> dict | None:
     """Pulls (home_decimal, away_decimal) out of one match's `odds` list.

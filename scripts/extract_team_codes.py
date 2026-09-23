@@ -58,13 +58,22 @@ def main():
     for code in sorted(live_codes):
         print(" ", code)
 
-    map_path = TEAM_MAP_DIR / args.team_map
+        map_path = TEAM_MAP_DIR / args.team_map
+    ignored_path = TEAM_MAP_DIR / args.team_map.replace(".json", ".ignored.json")
+    ignored = json.loads(ignored_path.read_text()) if ignored_path.exists() else {}
+
     if map_path.exists():
         table = json.loads(map_path.read_text())
         table_codes = set(table.keys())
 
-        missing = live_codes - table_codes
+        missing = live_codes - table_codes - set(ignored.keys())
         extra = table_codes - live_codes
+
+        deliberately_ignored = live_codes & set(ignored.keys())
+        if deliberately_ignored:
+            print(f"\nSeen live but deliberately excluded (see {ignored_path.name}):")
+            for code in sorted(deliberately_ignored):
+                print(f"   {code} — {ignored[code]}")
         if missing:
             print(f"\nIn Kalshi's data but NOT in {args.team_map} (add these):")
             for code in sorted(missing):
