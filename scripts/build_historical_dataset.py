@@ -66,8 +66,12 @@ def main():
         print(f"      Found existing {scrape_output}, skipping re-scrape "
               f"(delete it to force a fresh pull)")
     else:
-        season_str = f"{start_date.year}-{end_date.year}" if start_date.year != end_date.year else str(start_date.year)
-        sportsbook_history.run_historic_scrape(season_str, scrape_output)
+        season_str = sport_cfg["oddsharvester_season"]
+        sportsbook_history.run_historic_scrape(
+            sport_cfg["oddsharvester_sport"], sport_cfg["oddsharvester_league"],
+            sport_cfg["oddsharvester_market"], season_str, scrape_output,
+            concurrency=sport_cfg.get("oddsharvester_concurrency", 3),
+        )
     sportsbook_rows = sportsbook_history.load_and_normalize(
         scrape_output, preferred_bookmaker=config["sportsbook_bookmaker"]
     )
@@ -75,7 +79,6 @@ def main():
 
     print("[4/4] Joining and writing CSV...")
     rows = build_dataset(
-        series_ticker=sport_cfg["kalshi_series"],
         team_map_file=sport_cfg["team_map_file"],
         schedule_games=schedule_games,
         kalshi_markets=kalshi_markets,

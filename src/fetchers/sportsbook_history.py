@@ -47,15 +47,32 @@ def decimal_to_american(decimal_odds: float) -> int:
 
 
 def run_historic_scrape(
+    sport: str,
+    league: str,
+    market: str,
     season: str,
     output_path: str,
     bookmaker_filter: str | None = None,
     headless: bool = True,
+    concurrency: int = 3,
 ) -> Path:
-    """Shells out to the oddsharvester CLI for NFL moneyline odds for one
-    season (e.g. "2025" or "2025-2026" — confirm which format the
-    installed version expects; the README examples were inconsistent
-    between single-year and hyphenated forms for different sports).
+    """Shells out to the oddsharvester CLI for one sport/league/market/season.
+
+    FIXED 2026-09-22 (twice): sport, league, AND market were all
+    hardcoded inside this function — "american-football"/"usa-nfl"
+    first, then "moneyline" for market, both wrong and both silently
+    ignoring config.yaml. Confirmed against real CLI error output:
+    league key is the bare "nfl", and there's no "moneyline" market for
+    american-football — the two-outcome (no draw) market is called
+    "home_away". All three now come from the caller (config.yaml, via
+    build_historical_dataset.py) rather than being baked in here — if
+    you add another sport, config.yaml is the only place that needs new
+    values, not this function. Lesson learned twice over: don't
+    hardcode anything this function was told to take from config.
+
+    season format ("2025" vs "2025-2026") — confirm which the installed
+    version expects; the README examples were inconsistent between
+    single-year and hyphenated forms for different sports.
 
     Writes raw JSON to output_path and returns its Path. Does not parse
     it — call load_and_normalize() separately so a bad parse doesn't
@@ -63,21 +80,31 @@ def run_historic_scrape(
     """
     cmd = [
         "oddsharvester", "historic",
-        "-s", "american-football",
-        "-l", "usa-nfl",
+        "-s", sport,
+        "-l", league,
         "--season", season,
-        "-m", "moneyline",
+        "-m", market,
         "-f", "json",
         "-o", output_path,
+        "-c", str(concurrency),
     ]
     if headless:
         cmd.append("--headless")
 
     print(f"Running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
+    process = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        text=True, bufsize=1,
+    )
+    output_lines = []
+    for line in process.stdout:
+        print(f"  [oddsharvester] {line.rstrip()}")
+        output_lines.append(line)
+    process.wait()
+
+    if process.returncode != 0:
         raise RuntimeError(
-            f"oddsharvester exited {result.returncode}\nstdout: {result.stdout}\nstderr: {result.stderr}"
+            f"oddsharvester exited {process.returncode}\noutput:\n{''.join(output_lines)}"
         )
     return Path(output_path if output_path.endswith(".json") else f"{output_path}.json")
 
@@ -95,7 +122,11 @@ def _extract_moneyline_prices(odds_entries: list[dict], preferred_bookmaker: str
     """
     candidates = odds_entries
     if preferred_bookmaker:
-        preferred = [e for e in odds_entries if e.get("bookmaker_name") == preferred_bookmaker]
+        pref_lower = preferred_bookmaker.lower()
+        preferred = [
+            e for e in odds_entries
+            if pref_lower in (e.get("bookmaker_name") or "").lower()
+        ]
         candidates = preferred or odds_entries
 
     home_keys = ("1", "home", "Home")
@@ -137,7 +168,7 @@ def load_and_normalize(json_path: str, preferred_bookmaker: str | None = "Bet365
 
     normalized = []
     for match in matches:
-        prices = _extract_moneyline_prices(match.get("odds", []), preferred_bookmaker)
+        prices = _extract_moneyline_prices(match.get("home_away_market", []), preferred_bookmaker)
         if prices is None:
             continue
 

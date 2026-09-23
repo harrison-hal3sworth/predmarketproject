@@ -78,6 +78,12 @@ def _match_sportsbook_row(
     return best
 
 
+def _f(x):
+    """Candle numeric fields come back as strings (e.g. "0.7800"), or
+    null when a period had no trades — see debug findings 2026-09-22."""
+    return float(x) if x is not None else None
+
+
 def _candle_fields(prefix: str, candle: dict | None) -> dict:
     if candle is None:
         return {
@@ -89,15 +95,14 @@ def _candle_fields(prefix: str, candle: dict | None) -> dict:
         }
     return {
         f"{prefix}_candle_end_ts": candle["end_period_ts"],
-        f"{prefix}_close_price": candle["price"]["close_dollars"],
-        f"{prefix}_yes_bid_close": candle["yes_bid"]["close_dollars"],
-        f"{prefix}_yes_ask_close": candle["yes_ask"]["close_dollars"],
-        f"{prefix}_volume": candle["volume_fp"],
+        f"{prefix}_close_price": _f(candle["price"]["close"]),
+        f"{prefix}_yes_bid_close": _f(candle["yes_bid"]["close"]),
+        f"{prefix}_yes_ask_close": _f(candle["yes_ask"]["close"]),
+        f"{prefix}_volume": _f(candle["volume"]),
     }
 
 
 def build_dataset(
-    series_ticker: str,
     team_map_file: str,
     schedule_games: list[dict],
     kalshi_markets: list[dict],
@@ -105,7 +110,12 @@ def build_dataset(
     candle_window_minutes: int = 30,
 ) -> list[dict]:
     """Main entry point. Returns a list of flat dicts, one per scheduled
-    game, ready for storage.csv_writer.write_rows()."""
+    game, ready for storage.csv_writer.write_rows().
+
+    (series_ticker was dropped from this signature on 2026-09-22 — the
+    historical candlesticks endpoint doesn't take it in the path, unlike
+    the live one this was first built against. See kalshi_history.py's
+    module docstring for the full story.)"""
     grouped = _group_kalshi_tickers_by_game(kalshi_markets, team_map_file, schedule_games)
 
     rows = []
@@ -119,12 +129,12 @@ def build_dataset(
         if group["home"]:
             home_ticker = group["home"]["market"]["ticker"]
             home_candle = kalshi_history.pick_pregame_candle(
-                series_ticker, home_ticker, start_time, candle_window_minutes
+                home_ticker, start_time, candle_window_minutes
             )
         if group["away"]:
             away_ticker = group["away"]["market"]["ticker"]
             away_candle = kalshi_history.pick_pregame_candle(
-                series_ticker, away_ticker, start_time, candle_window_minutes
+                away_ticker, start_time, candle_window_minutes
             )
 
         sportsbook_row = _match_sportsbook_row(schedule_game, sportsbook_rows)

@@ -1,5 +1,3 @@
-# CLAUDE GENERATED CODE TO EXTRACT TEAM CODES FROM KALSHI API
-
 """
 extract_team_codes.py — generalized version of the original MLB-only
 script. Pulls every distinct team code Kalshi actually uses for a given
@@ -35,7 +33,7 @@ def fetch_codes(series_ticker: str) -> set[str]:
         if cursor:
             params["cursor"] = cursor
         resp = requests.get(
-            "https://api.elections.kalshi.com/trade-api/v2/markets", params=params, timeout=30
+            "https://api.elections.kalshi.com/trade-api/v2/historical/markets", params=params, timeout=30
         )
         resp.raise_for_status()
         payload = resp.json()

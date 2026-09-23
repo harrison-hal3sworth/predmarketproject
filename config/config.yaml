@@ -8,29 +8,39 @@ sports:
     team_map_file: "nfl_teams.json"
     espn_sport_key: "nfl"          # key into SPORT_ENDPOINTS in src/fetchers/schedule.py
     oddsharvester_sport: "american-football"
-    oddsharvester_league: "usa-nfl"
+    oddsharvester_league: "nfl"
+    oddsharvester_market: "home_away"
+    oddsharvester_season: "2025-2026"
   mlb:
+    oddsharvester_concurrency: 5
     kalshi_series: "KXMLBGAME"
     team_map_file: "mlb_teams.json"
     espn_sport_key: "mlb"
     oddsharvester_sport: "baseball"
-    oddsharvester_league: "usa-mlb"   # TODO: confirm this league slug once you get to MLB
+    oddsharvester_league: "mlb"
+    oddsharvester_market: "home_away"
+    oddsharvester_season: "2025"
 
-active_sport: "nfl"
+# active_sport: "nfl"
 
-# 2025 NFL regular season pilot window. Kalshi's NFL markets launched
-# with the 2025 season (~Sept 2025) — nothing before that will match.
+# # 2025 NFL regular season pilot window. Kalshi's NFL markets launched
+# # with the 2025 season (~Sept 2025) — nothing before that will match.
+# date_range:
+#   start: "2025-09-04"
+#   end: "2026-02-12"
+
+# sportsbook_bookmaker: "Bet365"   # must match a bookmaker_name OddsHarvester returns
+
+# candle_window_minutes_before_kickoff: 30   # how far back from scheduled start to
+#                                             # search for a Kalshi candle (replaces
+#                                             # the old snapshot_minutes_before_start)
+
+# output_csv: "data/nfl_2025_historical.csv"
+active_sport: "mlb"
 date_range:
-  start: "2025-09-04"
-  end: "2025-09-26"
-
-sportsbook_bookmaker: "Bet365"   # must match a bookmaker_name OddsHarvester returns
-
-candle_window_minutes_before_kickoff: 30   # how far back from scheduled start to
-                                            # search for a Kalshi candle (replaces
-                                            # the old snapshot_minutes_before_start)
-
-output_csv: "data/nfl_2025_historical.csv"
+  start: "2025-03-18"
+  end: "2025-11-02"
+output_csv: "data/mlb_2025_historical.csv"
 
 # threshold_pct / flat_stake intentionally left out of this file — that's
 # your bet_logic.py's territory, not the data-pull config.

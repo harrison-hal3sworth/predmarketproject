@@ -1,5 +1,3 @@
-# # CLAUDE GENERATED CODE TO VERIFY TEAM NAMES
-
 """
 verify_team_names.py — generalized, and repointed at ESPN's schedule
 data instead of TheOddsAPI (the join now happens against schedule.py's
