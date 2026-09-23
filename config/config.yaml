@@ -31,7 +31,7 @@ sports:
     oddsharvester_market: "home_away"
     oddsharvester_season: "2025-2026"
     oddsharvester_concurrency: 10
-    oddsharvester_pilot_max_pages: 2
+    oddsharvester_pilot_max_pages: null
 
 # active_sport: "nfl"
 
