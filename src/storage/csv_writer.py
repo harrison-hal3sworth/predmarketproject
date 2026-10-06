@@ -1,3 +1,5 @@
+# CLAUDE GENERATED CODE TO WRITE PULLED DATA TO CSV'S
+
 """
 csv_writer.py
 

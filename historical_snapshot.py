@@ -1,3 +1,5 @@
+# CLAUDE GENERATED CODE TO BUILD SNAPSHOTS (OBSERVATIONS)
+
 """
 historical_snapshot.py
 

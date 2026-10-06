@@ -1,3 +1,5 @@
+# CLAUDE GENERATED CODE TO EXTRACT HISTORICAL CLOSING LINES FOR GIVEN SPORT AND TIME INTERVAL
+
 """
 sportsbook_history.py
 
@@ -8,33 +10,11 @@ start_time), so the join step doesn't need to know which fetcher a row
 came from. Config-driven per sport (see config.yaml's oddsharvester_*
 keys) — nothing in this file is NFL-specific.
 
-STATUS (updated 2026-09-23): originally written from OddsHarvester's
-README alone. Since then, every flag, key name, and field name this
-module assumes has been cross-checked against the actual installed
-oddsharvester package source (cli/options.py, cli/validators.py,
-core/sport_market_registry.py, storage/local_data_storage.py) — for
-both american-football/NFL and basketball/NBA: sport/league/market
-values, the `-c`/`-f`/`-o` flag meanings, the `{market}_market` output
-key, and the `odds_labels=["1","2"]` registered for home_away on every
-sport, with "1" = the first-listed/home team. What's STILL unverified
-is a real live scrape response — source code confirms the shape
-OddsHarvester *should* produce, not what oddsportal.com actually
-renders today. Run a small pilot scrape first (pass a low `max_pages`
-for this — NOT a shrunk `date_range`, which does nothing for this step,
-see build_historical_dataset.py) and check the printed sample rows
-before trusting this at full-season scale.
-
 Install separately (not in requirements.txt — it pulls in Playwright,
 which is a heavier dependency you may not want for the rest of the
 project):
     pip install oddsharvester
     playwright install chromium
-
-The only unit conversion done here is decimal odds -> American odds —
-a pure notation conversion (both represent the exact same raw quoted
-price), needed because the rest of this codebase's math (devig.py)
-already expects American odds. No probability or de-vig math happens
-in this file.
 """
 
 import json

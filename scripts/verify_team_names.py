@@ -1,3 +1,5 @@
+# CLAUDE GENERATED CODE TO VERIFY SPORT LEAGUE LOOKUP TABLES
+
 """
 verify_team_names.py — generalized, and repointed at ESPN's schedule
 data instead of TheOddsAPI (the join now happens against schedule.py's
@@ -7,7 +9,7 @@ Checks that every full team name in a lookup table exactly matches a
 team name ESPN actually uses, so event_matcher.py's team-set comparison
 doesn't silently fail on something like "LA Rams" vs "Los Angeles Rams".
 
-Usage:
+Example Usage:
     python scripts/verify_team_names.py --sport nfl --team-map nfl_teams.json \
         --start 2025-09-01 --end 2025-09-14
 """

@@ -1,3 +1,5 @@
+# CLAUDE GENERATED CODE TO EXTRACT TEAM CODES
+
 """
 extract_team_codes.py — generalized version of the original MLB-only
 script. Pulls every distinct team code Kalshi actually uses for a given
@@ -7,7 +9,7 @@ scale — this is the check the NFL team table (pre-filled from general
 knowledge, not yet confirmed against live data beyond the ~10 codes
 seen in chat) specifically needs.
 
-Usage:
+Example Usage:
     python scripts/extract_team_codes.py --series KXNFLGAME --team-map nfl_teams.json
     python scripts/extract_team_codes.py --series KXMLBGAME --team-map mlb_teams.json
 """

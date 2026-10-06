@@ -1,8 +1,9 @@
+# CLAUDE GENERATED CODE TO MATCH EVENTS (ODDSAPI AND KALSHI)
+
 """
 event_matcher.py
 
-Generalized version of the original MLB-only matcher. Parses a Kalshi
-game-winner ticker for ANY sport series (config-driven, not hardcoded)
+Parses a Kalshi game-winner ticker for ANY sport series (config-driven, not hardcoded)
 and matches it to a row from our own schedule data (src/fetchers/schedule.py),
 not to a live odds API response — this pipeline is a historical backfill,
 so "the schedule" is the ground truth for team names and kickoff time.
@@ -18,7 +19,7 @@ start time for candle alignment should come from the schedule pull
 used here as a secondary disambiguator when multiple games between the
 same two teams happen on the same date (doubleheaders).
 
-Kalshi ticker shapes seen so far:
+Kalshi ticker examples:
   MLB: KXMLBGAME-{YY}{MON}{DD}{HHMM}{AWAYCODE}{HOMECODE}-{SIDE}
        e.g. KXMLBGAME-26SEP152140MIAAZ-MIA
   NFL: KXNFLGAME-{YY}{MON}{DD}{AWAYCODE}{HOMECODE}-{SIDE}

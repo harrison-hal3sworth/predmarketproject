@@ -1,20 +1,11 @@
+# CLAUDE GENERATED CODE TO CONNECT, PULL AND FORM DATASET FOR GIVEN SPORT AND TIMEFRAME
+
 """
 build_historical_dataset.py — main entry point. Reads config/config.yaml,
 runs the full pull-match-join-write pipeline for `active_sport` over
 `date_range`, and writes the result to `output_csv`.
 
-This is the replacement for the old scheduler.py + snapshot.py +
-settlement.py trio: since this is a historical backfill, the result of
-every game is already known at pull time, so there's no separate
-"settle later" step — everything happens in one pass.
-
-Run locally (this will NOT work inside the Claude cloud session — see
-the network-access note from earlier in the chat):
-
-    pip install -r requirements.txt
-    pip install oddsharvester && playwright install chromium
-    python scripts/build_historical_dataset.py
-
+***DO FOR FIRST RUN AS PROOF OF CONCEPT***
 First run recommendation (the pilot checkpoint): edit config.yaml's
 date_range to a single week before running the full season, and
 eyeball the printed sample rows — especially whether kalshi_* and
@@ -22,30 +13,6 @@ sportsbook_* columns are actually populated, not just schedule/score
 columns. An all-null Kalshi or sportsbook column means a matching step
 is silently failing and is much cheaper to catch on a week of data than
 after a full-season run.
-
-FIXED 2026-09-23: date_range does NOT shrink step [3/4]. The
-OddsHarvester scrape is driven entirely by config's `oddsharvester_season`
-(the whole season), not by date_range. Set `oddsharvester_pilot_max_pages`
-in config.yaml (a small number, e.g. 2) for a sport's first run to
-actually cap that step's scope via oddsharvester's own `--max-pages`;
-leave it unset for the real full run. This is a smaller/cheaper safety
-net than the concurrency/checkpoint work below — use both together: a
-capped pilot to sanity-check output shape fast, checkpointing so a real
-full run survives an interruption.
-
-Also fixed: this used to treat "the raw scrape file exists" as "the
-scrape finished" — but oddsharvester can exit non-zero after writing a
-real, INCOMPLETE file (e.g. a listing page failed mid-scrape). A crashed
-run left a half-finished file that a bare rerun would silently reuse
-forever with no signal games were missing — the checkpoint file protects
-against losing progress on a crash, but doesn't by itself stop a later
-rerun from trusting an incomplete `scrape_output` as done. Now gated on
-a `.complete` marker written only after a scrape returns without
-raising — delete the marker (or the whole raw file) to force a fresh
-pull. If a run did crash, recover what you can with
-scripts/recover_checkpoint.py first, then decide whether to accept that
-partial data (and touch the marker yourself) or delete the checkpoint
-and rerun clean.
 """
 
 import sys

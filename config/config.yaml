@@ -1,17 +1,20 @@
-# Historical-backfill config. Replaces the live-pull config shape (no more
-# odds_api_key / snapshot_minutes_before_start for a scheduler — this is a
-# one-shot batch job you run locally per date range).
+# Globals for config
+sportsbook_bookmaker: "Bet365"
+candle_window_minutes_before_kickoff: 30
+available_sports: ["nfl", "mlb", "nba", "nhl"]
+available_seasons: ["2025"]
 
+# Configuration variables for each sport
 sports:
   nfl:
     kalshi_series: "KXNFLGAME"
     team_map_file: "nfl_teams.json"
-    espn_sport_key: "nfl"          # key into SPORT_ENDPOINTS in src/fetchers/schedule.py
+    espn_sport_key: "nfl"
     oddsharvester_sport: "american-football"
     oddsharvester_league: "nfl"
     oddsharvester_market: "home_away"
     oddsharvester_season: "2025-2026"
-    oddsharvester_pilot_max_pages: null   # set to e.g. 2 for a capped first pilot run
+    oddsharvester_pilot_max_pages: null
   mlb:
     oddsharvester_concurrency: 10
     kalshi_series: "KXMLBGAME"
@@ -32,37 +35,37 @@ sports:
     oddsharvester_season: "2025-2026"
     oddsharvester_concurrency: 10
     oddsharvester_pilot_max_pages: null
+  nhl:
+    kalshi_series: "KXNHLGAME"
+    team_map_file: "nhl_teams.json"
+    espn_sport_key: "nhl"
+    oddsharvester_sport: "ice-hockey"
+    oddsharvester_league: "nhl"
+    oddsharvester_market: "home_away"
+    oddsharvester_season: "2025-2026"                                  
+    oddsharvester_concurrency: 10
+    oddsharvester_pilot_max_pages: null
 
+# Comment/uncomment to toggle for corresponding sport for data pulling
 # active_sport: "nfl"
-
-# # 2025 NFL regular season pilot window. Kalshi's NFL markets launched
-# # with the 2025 season (~Sept 2025) — nothing before that will match.
 # date_range:
 #   start: "2025-09-04"
 #   end: "2026-02-12"
 # output_csv: "data/nfl_2025_historical.csv"
-# active_sport: "mlb"
-# date_range:
-#   start: "2025-03-18"
-#   end: "2025-11-02"
-# output_csv: "data/mlb_2025_historical.csv"
-
-active_sport: "nba"
+active_sport: "mlb"
 date_range:
-  start: "2025-10-21"
-  end: "2026-06-15"
-output_csv: "data/nba_2025_historical.csv"
+  start: "2025-03-18"
+  end: "2025-11-02"
+output_csv: "data/mlb_2025_historical.csv"
 
-# FIXED 2026-09-23: these two were commented out along with the old
-# nfl-specific block above, but they're sport-agnostic globals used every
-# run regardless of active_sport, not part of any one sport's profile —
-# left commented out, build_historical_dataset.py KeyErrors at step [3/4]
-# and [4/4]. Restored as active.
-sportsbook_bookmaker: "Bet365"   # must match a bookmaker_name OddsHarvester returns
+# active_sport: "nba"
+# date_range:
+#   start: "2025-10-21"
+#   end: "2026-06-15"
+# output_csv: "data/nba_2025_historical.csv"
 
-candle_window_minutes_before_kickoff: 30   # how far back from scheduled start to
-                                            # search for a Kalshi candle (replaces
-                                            # the old snapshot_minutes_before_start)
-
-# threshold_pct / flat_stake intentionally left out of this file — that's
-# your bet_logic.py's territory, not the data-pull config.
+# active_sport: "nhl"
+# date_range:
+#   start: "2025-10-07"
+#   end: "2026-06-22"
+# output_csv: "data/nhl_2025_historical.csv"

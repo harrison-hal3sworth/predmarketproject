@@ -1,8 +1,10 @@
+# CLAUDE GENERATED CODE THAT RECOVERS PARTIAL DATASET FROM FAILED DATASET BUILDING
+
 """Recovers a partial dataset from a checkpoint file left by a run that
 didn't finish (OS restart, crash, power loss). Run this, inspect how far
 it got, then either accept the partial data or rerun the scrape.
 
-Usage:
+Example Usage:
     python scripts/recover_checkpoint.py data/raw_oddsharvester_mlb.checkpoint.ndjson data/raw_oddsharvester_mlb.json
 """
 import sys

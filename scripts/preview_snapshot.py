@@ -3,8 +3,7 @@
 """
 preview_snapshot.py — manual sanity check of the full non-storage pipeline:
 pulls live Kalshi markets + cached TheOddsAPI data, matches them, computes
-both probabilities for each side, and prints the gap. No Excel writing, no
-scheduling, no bet logic — just "does the math look right on real games."
+both probabilities for each side, and prints the gap.
 """
 
 import json

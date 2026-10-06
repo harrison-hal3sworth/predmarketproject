@@ -3,60 +3,10 @@ kalshi_history.py
 
 Pulls historical Kalshi game-winner market data: enumerates settled
 markets for a series, then pulls the candlestick nearest a game's
-scheduled start time (NOT market close — see the project notes on why
-"closing line" for a sports prediction market means pre-kickoff, not
-pre-settlement).
-
-REVISED 2026-09-22 after a real run against the 2025 season returned
-zero markets. Root cause, confirmed against live responses: Kalshi
-splits data at a rolling cutoff —
-
-    GET /trade-api/v2/historical/cutoff
-    -> {"market_settled_ts": "2026-07-24T00:00:00Z", ...}
-
-Anything settled before that cutoff is NOT served by the live endpoints
-this module originally used (GET /markets, GET /series/{series}/markets/
-{ticker}/candlesticks — both live-tier only, confirmed by a live 404 on
-an old ticker). It has to go through the dedicated historical endpoints
-instead:
-
-  - Market enumeration: GET /trade-api/v2/historical/markets
-      same params as the live version (series_ticker, status, limit,
-      cursor) — confirmed working against real Jan 2026 playoff data.
-  - Candlesticks: GET /trade-api/v2/historical/markets/{ticker}/candlesticks
-      NOTE: no series_ticker in the path here, unlike the live version.
-      Same params (start_ts, end_ts, period_interval) and same response
-      shape (price.{...}_dollars, yes_bid.{...}, yes_ask.{...},
-      volume_fp) — confirmed structurally (200 OK, correct ticker
-      echoed back, valid empty array) against a real old ticker; that
-      specific market happened to show 0 volume in its listing entry
-      too, so an empty candlesticks array there reflects an untraded
-      market, not a broken endpoint.
-
-Since this module exists to do BACKFILLS — by definition, data that's
-at least some weeks old — it now always uses the historical endpoints
-rather than trying to detect which side of the cutoff a date falls on.
-If you later add a use case that needs today's/this week's still-live
-market data, that's a live-endpoint call this module intentionally
-doesn't make; write a separate small function for it rather than
-overloading this one.
-
-ALSO REVISED: confirmed the Rams' Kalshi team code is NOT stable over
-time — "LA" in tickers through at least the Jan 2026 playoffs, "LAR" in
-live Sept 2026 tickers. data/lookup_tables/nfl_teams.json needs BOTH
-codes mapped to "Los Angeles Rams" (see chat) — this file's parsing
-logic already handles multiple valid codes fine, nothing to change
-here, just flagging why the team table has two LA-Rams entries.
-
-This module only pulls and lightly reshapes raw data — no probability
-math happens here. What "the market's price" means (last trade? mean?
-midpoint of bid/ask?) is a modeling decision left to your own analysis
-code; the picker below returns the whole candle so you can choose.
+scheduled start time
 
 No auth is required for public market-data endpoints (confirmed working
-without an API key, both live and historical). Requires a real,
-non-sandboxed network connection — this will NOT work from inside the
-Claude cloud session; run it from your own machine.
+without an API key, both live and historical).
 """
 
 import time
