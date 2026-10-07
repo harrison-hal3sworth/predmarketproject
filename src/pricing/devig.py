@@ -49,7 +49,16 @@ def devig_two_way(prob_a: float, prob_b: float, de_vig_strat: str) -> tuple[floa
             return (devig_a, devig_b)
         
         case "shin":
-            pass
+            sum_probs = prob_a + prob_b
+
+            z = brentq(lambda z: (np.sqrt(z**2 + 4 * (1 - z) * prob_a**2 / sum_probs) - z) / (2 * (1 - z))
+                            + (np.sqrt(z**2 + 4 * (1 - z) * prob_b**2 / sum_probs) - z) / (2 * (1 - z))
+                            - 1,
+                            0, 0.999,
+                            )
+
+            devig_a = (np.sqrt(z**2 + 4 * (1 - z) * prob_a**2 / sum_probs) - z) / (2 * (1 - z))
+            devig_b = (np.sqrt(z**2 + 4 * (1 - z) * prob_b**2 / sum_probs) - z) / (2 * (1 - z))
 
         case "power":
             k = brentq(lambda x: prob_a**x + prob_b**x - 1, -10, 0)
@@ -59,8 +68,13 @@ def devig_two_way(prob_a: float, prob_b: float, de_vig_strat: str) -> tuple[floa
 
             return (devig_a, devig_b)
 
-        case "odds ratio":
-            pass
+        case "cheung":
+            c = np.sqrt((prob_a / (1 - prob_a)) * (prob_b / (1 - prob_b)))
+
+            devig_a = prob_a / (c + prob_a - c * prob_a)
+            devig_b = prob_b / (c + prob_b - c * prob_b)
+
+            return (devig_a, devig_b)
 
         case _:
             raise ValueError("Invalid choice of de-vigging method.")

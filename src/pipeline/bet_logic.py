@@ -1,5 +1,5 @@
 """
-Threshold check + paper bet creation — milestone 4.
+Threshold check + paper bet creation
 
 Takes a snapshot row (from snapshot.py) and decides whether the gap
 between the two probabilities is big enough to log a hypothetical bet,

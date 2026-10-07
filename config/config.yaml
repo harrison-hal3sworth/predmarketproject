@@ -1,8 +1,6 @@
 # Globals for config
 sportsbook_bookmaker: "Bet365"
 candle_window_minutes_before_kickoff: 30
-available_sports: ["nfl", "mlb", "nba", "nhl"]
-available_seasons: ["2025"]
 
 # Configuration variables for each sport
 sports:
