@@ -6,6 +6,7 @@ candle_window_minutes_before_kickoff: 30
 sports:
   nfl:
     kalshi_series: "KXNFLGAME"
+    oddsharvester_concurrency: 10
     team_map_file: "nfl_teams.json"
     espn_sport_key: "nfl"
     oddsharvester_sport: "american-football"
@@ -50,11 +51,12 @@ sports:
 #   start: "2025-09-04"
 #   end: "2026-02-12"
 # output_csv: "data/nfl_2025_historical.csv"
-active_sport: "mlb"
-date_range:
-  start: "2025-03-18"
-  end: "2025-11-02"
-output_csv: "data/mlb_2025_historical.csv"
+
+# active_sport: "mlb"
+# date_range:
+#   start: "2025-03-18"
+#   end: "2025-11-02"
+# output_csv: "data/mlb_2025_historical.csv"
 
 # active_sport: "nba"
 # date_range:
@@ -62,8 +64,8 @@ output_csv: "data/mlb_2025_historical.csv"
 #   end: "2026-06-15"
 # output_csv: "data/nba_2025_historical.csv"
 
-# active_sport: "nhl"
-# date_range:
-#   start: "2025-10-07"
-#   end: "2026-06-22"
-# output_csv: "data/nhl_2025_historical.csv"
+active_sport: "nhl"
+date_range:
+  start: "2025-10-07"
+  end: "2026-06-22"
+output_csv: "data/nhl_2025_historical.csv"
