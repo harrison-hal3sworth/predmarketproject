@@ -1,4 +1,4 @@
-# CLAUDE GENERATED CODE TO EXTRACT TEAM CODES
+# Contains Claude generated code
 
 """
 extract_team_codes.py — generalized version of the original MLB-only

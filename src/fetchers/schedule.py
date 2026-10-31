@@ -1,4 +1,4 @@
-# CLAUDE GENERATED CODE TO EXTRACT SPORT SCHEDULES FOR GIVEN TIME INTERVAL
+# Contains Claude generated code
 
 """
 schedule.py

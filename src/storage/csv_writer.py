@@ -1,4 +1,4 @@
-# CLAUDE GENERATED CODE TO WRITE PULLED DATA TO CSV'S
+# Contains Claude generated code
 
 """
 csv_writer.py

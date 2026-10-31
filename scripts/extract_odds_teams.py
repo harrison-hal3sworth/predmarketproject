@@ -1,4 +1,4 @@
-# CLAUDE GENERATED CODE TO EXTRACT TEAM CODES FROM THE ODDS API
+# Contains Claude generated code
 
 """
 extract_odds_teams.py — lists every distinct MLB team name TheOddsAPI

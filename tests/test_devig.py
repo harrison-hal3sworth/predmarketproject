@@ -1,4 +1,5 @@
-# TESTS GENERATED FROM CLAUDE
+# Contains Claude generated code
+
 from src.pricing.devig import american_odds_to_prob, devig_two_way
 
 

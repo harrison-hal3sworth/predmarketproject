@@ -1,3 +1,5 @@
+# Contains Claude generated code
+
 import requests, json
 
 BASE = "https://api.elections.kalshi.com/trade-api/v2"

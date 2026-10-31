@@ -1,4 +1,4 @@
-# CLAUDE GENERATED CODE THAT RECOVERS PARTIAL DATASET FROM FAILED DATASET BUILDING
+# Contains Claude generated code
 
 """Recovers a partial dataset from a checkpoint file left by a run that
 didn't finish (OS restart, crash, power loss). Run this, inspect how far

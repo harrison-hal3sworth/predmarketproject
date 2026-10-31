@@ -1,4 +1,4 @@
-# CLAUDE GENERATED TEST FOR DATA PULLING THROUGH PROBABILITY SPREAD PIPELINE
+# Contains Claude generated code
 
 """
 preview_snapshot.py — manual sanity check of the full non-storage pipeline:

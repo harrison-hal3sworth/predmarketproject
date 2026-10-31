@@ -1,4 +1,4 @@
-# CLAUDE GENERATED CODE TO MATCH EVENTS (ODDSAPI AND KALSHI)
+# Contains Claude generated code
 
 """
 event_matcher.py

@@ -1,4 +1,4 @@
-# CLAUDE GENERATED CODE TO VERIFY SPORT LEAGUE LOOKUP TABLES
+# Contains Claude generated code
 
 """
 verify_team_names.py — generalized, and repointed at ESPN's schedule

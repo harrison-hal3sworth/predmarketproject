@@ -1,4 +1,4 @@
-# CLAUDE GENERATED CODE TO TEST APIs
+# Contains Claude generated code
 
 """
 smoke_test.py — manual check that both APIs return usable data for the

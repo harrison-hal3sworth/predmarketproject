@@ -1,4 +1,4 @@
-# CLAUDE GENERATED CODE TO BUILD SNAPSHOTS (OBSERVATIONS)
+# Contains Claude generated code
 
 """
 historical_snapshot.py

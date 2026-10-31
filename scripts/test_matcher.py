@@ -1,4 +1,4 @@
-# CLAUDE GENERATED CODE TO TEST EVENT MATCHER
+# Contains Claude generated code
 
 import json
 import sys

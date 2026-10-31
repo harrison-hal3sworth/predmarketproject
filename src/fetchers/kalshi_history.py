@@ -1,3 +1,5 @@
+# Contains Claude generated code
+
 """
 kalshi_history.py
 

@@ -1,4 +1,4 @@
-# CLAUDE GENERATED CODE TO EXTRACT HISTORICAL CLOSING LINES FOR GIVEN SPORT AND TIME INTERVAL
+# Contains Claude generated code
 
 """
 sportsbook_history.py

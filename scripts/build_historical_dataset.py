@@ -1,4 +1,4 @@
-# CLAUDE GENERATED CODE TO CONNECT, PULL AND FORM DATASET FOR GIVEN SPORT AND TIMEFRAME
+# Contains Claude generated code
 
 """
 build_historical_dataset.py — main entry point. Reads config/config.yaml,
