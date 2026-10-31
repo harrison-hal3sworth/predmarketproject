@@ -60,8 +60,10 @@ def devig_two_way(prob_a: float, prob_b: float, de_vig_strat: str) -> tuple[floa
             devig_a = (np.sqrt(z**2 + 4 * (1 - z) * prob_a**2 / sum_probs) - z) / (2 * (1 - z))
             devig_b = (np.sqrt(z**2 + 4 * (1 - z) * prob_b**2 / sum_probs) - z) / (2 * (1 - z))
 
+            return (devig_a, devig_b)
+
         case "power":
-            k = brentq(lambda x: prob_a**x + prob_b**x - 1, -10, 0)
+            k = brentq(lambda x: prob_a**x + prob_b**x - 1, 0.01, 20)
 
             devig_a = prob_a**k
             devig_b = prob_b**k

@@ -7,6 +7,7 @@ numpy
 jupiter
 scipy
 matplotlib
+statsmodels
 
 # oddsharvester is intentionally NOT pinned here — it pulls in Playwright,
 # a much heavier dependency than the rest of this file. Install it
