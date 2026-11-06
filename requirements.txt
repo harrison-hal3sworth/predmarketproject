@@ -4,7 +4,7 @@ tzdata
 pyyaml
 pandas
 numpy
-jupiter
+jupyter
 scipy
 matplotlib
 statsmodels

@@ -55,6 +55,22 @@ Time / season controls
                                 (proxy for Kalshi platform maturity)
   n_sports_today                number of leagues with a game that ET date
   n_games_today                 total games (all leagues) that ET date
+
+Optional columns (added only when the input file exists)
+  national_tv                   1 if ESPN lists a US national broadcast
+                                (from scripts/fetch_espn_broadcasts.py ->
+                                data/espn_broadcasts.csv)
+  national_networks             the national network names behind it
+  p_kalshi_{h}h, logit_kalshi_{h}h
+                                normalized Kalshi mid h = 24, 6, 2 hours
+                                before kickoff (from scripts/
+                                fetch_kalshi_early_prices.py ->
+                                data/kalshi_early_prices.csv); missing
+                                unless both sides had a two-sided quote
+  move_{h}h                     logit_kalshi - logit_kalshi_{h}h, the
+                                line movement from T-h to the close
+  stale_{h}h                    hours between T-h and the quote actually
+                                used (the older of the two sides)
 """
 
 from pathlib import Path
@@ -166,6 +182,47 @@ def apply_filters(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     return df.copy(), pd.DataFrame(log)
 
 
+def add_broadcasts(out: pd.DataFrame) -> pd.DataFrame:
+    """Merge the national-TV indicator, if scripts/fetch_espn_broadcasts.py has been run."""
+    path = ROOT / "data" / "espn_broadcasts.csv"
+    if not path.exists():
+        print(f"(skipping national_tv: {path.relative_to(ROOT)} not found)")
+        return out
+    tv = pd.read_csv(path, dtype={"game_id": str}, usecols=["game_id", "national_tv", "national_networks"])
+    out = out.assign(_gid=out["game_id"].astype(str)).merge(
+        tv.rename(columns={"game_id": "_gid"}), on="_gid", how="left").drop(columns="_gid")
+    print(f"national_tv merged: {out['national_tv'].notna().sum()} of {len(out)} games matched")
+    return out
+
+
+def add_early_prices(out: pd.DataFrame) -> pd.DataFrame:
+    """Merge earlier Kalshi quotes, if scripts/fetch_kalshi_early_prices.py has been run."""
+    path = ROOT / "data" / "kalshi_early_prices.csv"
+    if not path.exists():
+        print(f"(skipping early Kalshi prices: {path.relative_to(ROOT)} not found)")
+        return out
+    q = pd.read_csv(path, dtype={"game_id": str}) if path.stat().st_size > 10 else pd.DataFrame()
+    if q.empty:
+        print(f"(skipping early Kalshi prices: {path.relative_to(ROOT)} has no rows; rerun the fetch script)")
+        return out
+    q = q[(q["bid"] > 0) & (q["ask"] < 1)]           # two-sided quotes only
+    q["mid"] = (q["bid"] + q["ask"]) / 2
+    wide = q.pivot_table(index="game_id", columns=["side", "hours_before"],
+                         values=["mid", "stale_hours"], aggfunc="first")
+
+    gid = out["game_id"].astype(str)
+    for h in sorted(q["hours_before"].unique(), reverse=True):
+        get = lambda val, side: gid.map(wide[(val, side, h)]) if (val, side, h) in wide else np.nan
+        home, away = get("mid", "home"), get("mid", "away")
+        p = home / (home + away)
+        out[f"p_kalshi_{h}h"] = p
+        out[f"logit_kalshi_{h}h"] = logit(p).where(p.notna())
+        out[f"move_{h}h"] = out["logit_kalshi"] - out[f"logit_kalshi_{h}h"]
+        out[f"stale_{h}h"] = pd.concat([get("stale_hours", "home"), get("stale_hours", "away")], axis=1).max(axis=1).where(p.notna())
+        print(f"early Kalshi price T-{h}h: {out[f'p_kalshi_{h}h'].notna().sum()} of {len(out)} games")
+    return out
+
+
 def build() -> pd.DataFrame:
     raw = load_raw()
     raw = add_competition(raw)
@@ -216,6 +273,9 @@ def build() -> pd.DataFrame:
     out["log_open_interest"] = np.log1p(out["total_open_interest"])
     out["log_turnover"] = out["log_volume"] - out["log_open_interest"]
     out["low_volume"] = out["total_volume"] < MIN_VOLUME
+
+    out = add_broadcasts(out)
+    out = add_early_prices(out)
 
     out = out.sort_values("start_time_utc").reset_index(drop=True)
 
