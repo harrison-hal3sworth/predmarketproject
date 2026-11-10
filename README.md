@@ -9,6 +9,9 @@ NFL, NBA and NHL seasons, to ask:
 3. Are these sports prediction markets significantly inefficient?
 
 Findings, tests and caveats are in `analysis/models_complete.ipynb` (summary at the end).
+Two exploratory follow-ups, specified before running, extend the original questions:
+price leadership between the venues (section 8) and a multiple-testing-corrected
+search for the least efficient types of game (section 9).
 
 ## Repository layout
 
@@ -38,7 +41,8 @@ Optional data add-ons (each one is a standalone fetch, merged automatically by
 Helper scripts: `verify_oddsharvester_sport.py` (check a sport/league/market against
 the installed OddsHarvester), `extract_team_codes.py` / `verify_team_names.py`
 (build and check team maps), `recover_checkpoint.py` (rebuild a scrape from its
-checkpoint after a crash).
+checkpoint after a crash), `diagnose_kalshi_candles.py` (check Kalshi's candlestick
+endpoints for one known market if a candle fetch comes back empty).
 
 ## Setup
 
@@ -87,8 +91,8 @@ then `analysis/models_complete.ipynb` (results).
 
 ## Dataset
 
-`data/model_table.csv`: **4,865 games × 47 columns** (more once the add-on data
-above is merged), one row per game from the
+`data/model_table.csv`: **4,865 games × 61 columns** (47 core columns, plus 14 from
+the two add-on files above), one row per game from the
 home team's perspective, Apr 2025 – Jun 2026.
 
 | Sport | Games |
